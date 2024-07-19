@@ -2,20 +2,17 @@ import React, { useEffect, useState } from "react";
 import axios from 'axios';
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import { show_alerta } from "../functions";
 
 const ShowClient = () => {
   const url = 'http://api.maytechsoluciones.com/api/controller/cliente.php?op=ShowAll';
   const [client, setClient] = useState([]);
-  const [cli_id, setId] = useState('');
   const [cli_nom, setNom] = useState('');
   const [pais_id, setPais] = useState('');
   const [doc, setDoc] = useState('');
   const [cli_correo, setCorreo] = useState('');
   const [cli_cel, setCelu] = useState('');
   const [fecha_rg, setReg] = useState('');
-  const [fecha_up, setFechaUp] = useState('');
-  const [est, setEst] = useState('');
+  const [est, setEst] = useState('1');
 
   useEffect(() => {
     getClients();
@@ -24,10 +21,35 @@ const ShowClient = () => {
   const getClients = async () => {
     try {
       const respuesta = await axios.get(url);
-      console.log("Respuesta de la API:", respuesta.data); // Añade este log para ver la respuesta
+      console.log("Respuesta de la API:", respuesta.data); 
       setClient(respuesta.data);
     } catch (error) {
       console.error("Error fetching data: ", error);
+    }
+  };
+
+  const handleCreateClient = async () => {
+    const newClient = {
+      cli_nom,
+      pais_id,
+      doc,
+      cli_correo,
+      cli_cel,
+      fecha_rg,
+      est
+    };
+
+    try {
+      const response = await axios.post('http://api.maytechsoluciones.com/api/controller/cliente.php?op=Insert', newClient);
+      if (response.data.success) {
+        Swal.fire("Éxito", "Cliente añadido correctamente", "success");
+        getClients();
+      } else {
+        Swal.fire("Error", "Hubo un problema al añadir el cliente", "error");
+      }
+    } catch (error) {
+      Swal.fire("Error", "Hubo un problema al añadir el cliente", "error");
+      console.error("Error creating client: ", error);
     }
   };
 
@@ -55,7 +77,6 @@ const ShowClient = () => {
                   <th>Correo</th>
                   <th>Celular</th>
                   <th>Fecha Registro</th>
-                  <th>Fecha Actualización</th>
                   <th>Estado</th>
                 </tr>
               </thead>
@@ -70,13 +91,12 @@ const ShowClient = () => {
                       <td>{cli.cli_correo}</td>
                       <td>{cli.cli_cel}</td>
                       <td>{cli.fecha_rg}</td>
-                      <td>{cli.fecha_up}</td>
                       <td>{cli.est}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="9" className="text-center">No hay datos disponibles</td>
+                    <td colSpan="8" className="text-center">No hay datos disponibles</td>
                   </tr>
                 )}
               </tbody>
@@ -93,11 +113,40 @@ const ShowClient = () => {
               <button type='button' className='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
             </div>
             <div className='modal-body'>
-              {/* Aquí puedes añadir el formulario para añadir clientes */}
+              <form>
+                <div className="mb-3">
+                  <label className="form-label">Nombre</label>
+                  <input type="text" className="form-control" value={cli_nom} onChange={(e) => setNom(e.target.value)} />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Pais ID</label>
+                  <input type="text" className="form-control" value={pais_id} onChange={(e) => setPais(e.target.value)} />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Documento</label>
+                  <input type="text" className="form-control" value={doc} onChange={(e) => setDoc(e.target.value)} />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Correo</label>
+                  <input type="email" className="form-control" value={cli_correo} onChange={(e) => setCorreo(e.target.value)} />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Celular</label>
+                  <input type="text" className="form-control" value={cli_cel} onChange={(e) => setCelu(e.target.value)} />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Fecha Registro</label>
+                  <input type="date" className="form-control" value={fecha_rg} onChange={(e) => setReg(e.target.value)} />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Estado</label>
+                  <input type="text" className="form-control" value={est} onChange={(e) => setEst(e.target.value)} />
+                </div>
+              </form>
             </div>
             <div className='modal-footer'>
               <button type='button' className='btn btn-secondary' data-bs-dismiss='modal'>Cerrar</button>
-              <button type='button' className='btn btn-primary'>Guardar</button>
+              <button type='button' className='btn btn-primary' onClick={handleCreateClient}>Guardar</button>
             </div>
           </div>
         </div>
